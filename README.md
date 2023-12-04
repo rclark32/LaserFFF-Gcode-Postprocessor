@@ -18,6 +18,7 @@ Currently, this program is made to standalone, but is designed for future integr
 
 
 The program consists of 3 files: 
+
 [PostProcessor.py](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/PostProcessor.py)
 
 [Visualizer.py](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Visualizer.py)
@@ -32,6 +33,7 @@ PostProcessor and Visualizer are designed to be incorporated into Cura. UI_Wrapp
 ## Demonstration & Examples
 
 Some example gcode files are shown below. These were sliced for a Creality Ender 3, but the postprocessor still functions the same.
+
 [Input Gcode](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Gcode-Examples/LFFF-Benchy.gcode) - Benchy (.stl from [Creative Tools on Thingiverse](https://www.thingiverse.com/thing:763622/files))
 
 [Processed Gcode](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Gcode-Examples/LFFF-Benchy-LaserFFF.gcode)
@@ -41,5 +43,6 @@ Some example gcode files are shown below. These were sliced for a Creality Ender
 
 [Output Gcode](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Gcode-Examples/LFFF-Elephant-LaserFFF.gcode)
 
-### Video Demonstration
-()
+### Libraries Used: 
+Numpy, argparse, tkinter, pygame, re, os, sys
+

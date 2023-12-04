@@ -4,7 +4,7 @@ A gcode postprocessor for a Laser-FFF 3D printer, with built in visualizer. Comp
 ## Program Background
 This program is a gcode Postprocessor for a custom 3D printer. This printer is Dr. Pu Han's, from Dr. Keng Hsu's lab on the ASU Polytechnic campus. This Laser FFF printer is like a normal 3D printer, but uses an orbiting laser to melt or soften the plastic below the deposition site. An example is shown in the video below. This program provides extra control over the laser, and also adds a custom visualizer that shows a preview of the laser orientation relative to the toolpath
 
-https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Videos/Laser-FFF-Demonstration.mp4
+[Video Link](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Videos/Laser-FFF-Demonstration.mp4)
 
 
 
@@ -19,8 +19,11 @@ Currently, this program is made to standalone, but is designed for future integr
 
 The program consists of 3 files: 
 [PostProcessor.py](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/PostProcessor.py)
+
 [Visualizer.py](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Visualizer.py)
+
 [UI_Wrapper.py](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/UI_Wrapper.py)
+
 
 PostProcessor and Visualizer are designed to be incorporated into Cura. UI_Wrapper provides functionality as a standalone program.
 

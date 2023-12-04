@@ -3,7 +3,8 @@ A gcode postprocessor for a Laser-FFF 3D printer, with built in visualizer. Comp
 
 ## Program Background
 This program is a gcode Postprocessor for a custom 3D printer. This printer is Dr. Pu Han's, from Dr. Keng Hsu's lab on the ASU Polytechnic campus. This Laser FFF printer is like a normal 3D printer, but uses an orbiting laser to melt or soften the plastic below the deposition site. An example is shown in the video below. This program provides extra control over the laser, and also adds a custom visualizer that shows a preview of the laser orientation relative to the toolpath
-[https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Videos/Laser-FFF-Demonstration.mp4]
+
+https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Videos/Laser-FFF-Demonstration.mp4
 
 
 

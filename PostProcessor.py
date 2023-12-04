@@ -4,7 +4,7 @@
 import re
 import os
 
-import math
+import numpy as np
 import argparse  # Used to simulate args during testing
 from collections import OrderedDict
 
@@ -105,7 +105,7 @@ class PostProcessor:
             f.write(gcode_joined)
 
     def _calculate_rotation(self, old_x, old_y, new_x, new_y) -> float:
-        direction = math.degrees(math.atan2((new_x - old_x), (new_y - old_y)))
+        direction = np.degrees(np.arctan2((new_x - old_x), (new_y - old_y)))
         if (old_y < new_y):
             direction += 180
         return round(direction % 360, 3)

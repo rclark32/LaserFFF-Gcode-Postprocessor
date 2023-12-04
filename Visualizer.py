@@ -3,11 +3,11 @@
 
 import pygame
 import sys
-import math
+import numpy as np
 
 
 def deg_to_rad(degrees):
-    return math.radians(degrees)
+    return np.radians(degrees)
 
 def draw_toolpath(path, current_index, colors, screen): # Draws the entire toolpath on the screen
     prev_x, prev_y = None, None
@@ -22,8 +22,8 @@ def draw_toolpath(path, current_index, colors, screen): # Draws the entire toolp
             # Draw a line indicating extrusion direction
             angle_rad = deg_to_rad(360-point["extruder_angle"])
             extrusion_length = 30
-            end_x = int(x + extrusion_length * math.cos(angle_rad))
-            end_y = int(y + extrusion_length * math.sin(angle_rad))
+            end_x = int(x + extrusion_length * np.cos(angle_rad))
+            end_y = int(y + extrusion_length * np.sin(angle_rad))
             pygame.draw.line(screen, (255, 0, 0), (x, y), (end_x, end_y), 2)
 
         if prev_x is not None and prev_y is not None and point["extrude"]:

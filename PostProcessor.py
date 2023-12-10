@@ -25,10 +25,13 @@ class PostProcessor:
         self._type_block_regexp = re.compile(
             r";TYPE:[^;\n]+([\s\S]*?)(?=(?:;TYPE:|;MESH:|;TIME_ELAPSED:|$)(?<!;TYPE:))")
 
+        self.distance_threshold = 1 # Threshold, in mm, to cut off unnecessary large rotations with small movements
+        self.angle_threshold = 15 # Threshold, in degrees, to cut off large rotations along with small movements
+
         # Printer specific Gcode commands:
         self._laser_disable = 'M60; Laser disable'
         self._laser_enable = 'M61; Laser enable'
-        self._laser_high_power = 'M62; Laser High Power' # TODO implement on surface finish
+        self._laser_high_power = 'M62; Laser High Power'
 
         self._rotate_command = 'A'
 
@@ -113,13 +116,24 @@ class PostProcessor:
             #direction += 180
         return round(direction % 360, 3)
 
-    def _get_laser_gcode(self, command, E) -> str:
+    def _get_laser_gcode(self, command, E, sf = 0) -> str:
         if E <= 0:
             return (self._laser_disable)  # If retraction or no extrusion, return 0
+        elif sf == 1:
+            if command:
+                return(self._laser_high_power) # If surface finish layer, enable laser HIGH POWER
+            else:
+                return(self._laser_disable) # Disable laser if G0
         elif command:
-            return (self._laser_enable)  # If G1, enable laser
+            return (self._laser_enable)  # If G1, enable laser LOW
         else:
             return (self._laser_disable)  # G0 - disable laser
+
+    def get_distance_between_points(self, old_x, old_y, new_x, new_y):
+        x_dist = abs(old_x-new_x)
+        y_dist = abs(old_y-new_y)
+
+        return(np.hypot(x_dist,y_dist)) # Returns hypotenuse of triangle
 
     def process_gcode_list(self, gcode_list):
         sum_size = 0
@@ -144,6 +158,8 @@ class PostProcessor:
         new_E = 0
 
         delta_E = 0
+        visualizer_a = 0
+
 
         Z = 0
         new_F = 0
@@ -186,7 +202,6 @@ class PostProcessor:
                         linebuffer.append(";LAYER:" + str(current_layer_num))
 
                         # If this layer is a surface finish layer (every X layers)
-                        # TODO: If surface finish layer, use M62, otherwise, M61.
                         if current_layer_num % (self.lf_layers_between_surface_finish + 1) == 0:  # Layers are 0 indexed
                             rotation_offset = self._rotation_offset + self._base_rotation  # Add 90 degree offset to standard offset
                             linebuffer.append("; Surface finish layer")
@@ -225,7 +240,6 @@ class PostProcessor:
                 elif (line.split(" ")[0] in ['G0', 'G1']):  # If it's a G line
                     splitline = line.split(" ")
 
-                    old_A = new_A
 
                     original_line, command, comment = self.parse_line(line)  # Split gcode line into commands
 
@@ -268,29 +282,45 @@ class PostProcessor:
                         no_feedrate_in_line = True
 
                     if calculate_rotation_flag:
+                        old_A = new_A
                         new_A = self._calculate_rotation(old_x, old_y, new_x, new_y)
 
-                        if outer_wall is True:
-                            new_A += rotation_offset
-                            new_A = new_A % 360
+
+                        """
+                        A D R
+                        1 0 1
+                        1 1 0
+                        0 0 1
+                        0 1 1
+                        
+                        """
+                        
+
+                        big_angle = (abs(new_A-old_A)) > float(self.angle_threshold)
+                        small_movement = (self.get_distance_between_points(old_x, old_y, new_x, new_y)) < float(self.distance_threshold)
+
+                        if not (big_angle and small_movement): # Removes big rotations during small movements
+                            if outer_wall is True:
+                                new_A += rotation_offset # Rotation offset is changed depending on surface finish layer
+                                new_A = new_A % 360
+                            else:
+                                new_A += self._base_rotation
+                                new_A = new_A % 360
+
+
+
+                            rotation_speed = self.lf_outer_wall_print_speed * 60  # Convert to deg/min from deg/s
+                            linebuffer.append(f'G0 A{round(new_A,3)} F{rotation_speed}')
+                            self.added_commands += 1
+                            visualizer_a = new_A
                         else:
-                            new_A += self._base_rotation
-                            new_A = new_A % 360
+                            visualizer_a = old_A
 
-                        rotation_speed = self.lf_outer_wall_print_speed * 60  # Convert to deg/min from deg/s
-                        # TODO If the movement is very small, and the angle is large, ignore it (just don't move the laser but keep it enabled)
 
-                        linebuffer.append(f'G0 A{new_A} F{rotation_speed}')
-                        self.added_commands += 1
-
-                        # linebuffer.append(line) # Add original line w/ comment back in
-
-                    # Laser does not need to be turned off constantly
-                    # If movement is less than
 
                     if extrude_state_changed_flag:
                         # Toggle laser depending on deposition state
-                        linebuffer.append(self._get_laser_gcode(new_G, delta_E))
+                        linebuffer.append(self._get_laser_gcode(new_G, delta_E, sf = surface_finish))
                         self.added_commands += 1
 
                     if no_feedrate_in_line == True:
@@ -299,7 +329,7 @@ class PostProcessor:
                         linebuffer.append(line) # Or just add the original line
 
                     if visualize:
-                        path = {"x": new_x, "y": new_y, "extruder_angle": new_A, "extrude": delta_E > 0,
+                        path = {"x": new_x, "y": new_y, "extruder_angle": visualizer_a, "extrude": delta_E > 0,
                                 "color": vs_color, "surface_finish": surface_finish}
                         toolpath.append(path)
 

@@ -43,6 +43,9 @@ Some example gcode files are shown below. These were sliced for a Creality Ender
 
 [Output Gcode](https://github.com/rclark32/LaserFFF-Gcode-Postprocessor/blob/main/Gcode-Examples/LFFF-Elephant-LaserFFF.gcode)
 
+## Video demonstration:
+https://youtu.be/7vI6lZpDN5w
+
 ### Libraries Used: 
 Numpy, argparse, tkinter, pygame, re, os, sys
 

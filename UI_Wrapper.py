@@ -11,7 +11,7 @@ class GCodePostprocessorUI:
         master.title("Laser FFF Postprocessor")
 
         self.file_path = None
-        self.rotation_speed = tk.StringVar(value="360") #Set default values
+        self.rotation_speed = tk.StringVar(value="3333.33333") #Set default values
         self.outer_wall_speed = tk.StringVar(value="10")
         self.layers_between_finish = tk.StringVar(value="2")
         self.visualize_toolpath = tk.BooleanVar(value=True)

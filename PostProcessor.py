@@ -13,6 +13,7 @@ inputFilePath = "C:/Users/recla/Downloads/Gcode_ref/Venchy.gcode"
 outputFilePath = "C:/Users/recla/Downloads/Gcode_ref/Outputfiles/testOutputVenchy.gcode"
 
 
+
 class PostProcessor:
     def __init__(self) -> None:
 
@@ -25,13 +26,14 @@ class PostProcessor:
             r";TYPE:[^;\n]+([\s\S]*?)(?=(?:;TYPE:|;MESH:|;TIME_ELAPSED:|$)(?<!;TYPE:))")
 
         # Printer specific Gcode commands:
-        self._laser_enable = 'M60; Laser enable'
-        self._laser_disable = 'M61; Laser disable'
+        self._laser_disable = 'M60; Laser disable'
+        self._laser_enable = 'M61; Laser enable'
+        self._laser_high_power = 'M62; Laser High Power' # TODO implement on surface finish
 
         self._rotate_command = 'A'
 
-        self._rotation_offset = -90  # Rotation offset for outer wall Could be -90? maybe radians?
-        self._base_rotation = 90  # Assumes positive Y is 0 degrees - Change if 0 degrees is in a different location
+        self._rotation_offset = 90  # Rotation offset for outer wall Could be -90? maybe radians?
+        self._base_rotation = -90  # Assumes positive Y is 0 degrees - Change if 0 degrees is in a different location
 
         # Initialization
         self._extruder_state = False
@@ -66,7 +68,7 @@ class PostProcessor:
 
     def get_cura_settings(self, cura_settings) -> None:
         if type(cura_settings) is dict: # For GUI:
-            self.lf_rotation_speed = cura_settings.get("lf_rotation_speed", 360)
+            self.lf_rotation_speed = cura_settings.get("lf_rotation_speed", 3333.33333)
             self.lf_outer_wall_print_speed = cura_settings.get("lf_outer_wall_print_speed", 100)
             self.lf_layers_between_surface_finish = cura_settings.get("lf_layers_between_surface_finish", 2)
             self.lf_visualize_layers = cura_settings.get("lf_visualize_layers", True)
@@ -107,7 +109,8 @@ class PostProcessor:
     def _calculate_rotation(self, old_x, old_y, new_x, new_y) -> float:
         direction = np.degrees(np.arctan2((new_x - old_x), (new_y - old_y)))
         if (old_y < new_y):
-            direction += 180
+            pass
+            #direction += 180
         return round(direction % 360, 3)
 
     def _get_laser_gcode(self, command, E) -> str:
@@ -183,6 +186,7 @@ class PostProcessor:
                         linebuffer.append(";LAYER:" + str(current_layer_num))
 
                         # If this layer is a surface finish layer (every X layers)
+                        # TODO: If surface finish layer, use M62, otherwise, M61.
                         if current_layer_num % (self.lf_layers_between_surface_finish + 1) == 0:  # Layers are 0 indexed
                             rotation_offset = self._rotation_offset + self._base_rotation  # Add 90 degree offset to standard offset
                             linebuffer.append("; Surface finish layer")
@@ -274,11 +278,15 @@ class PostProcessor:
                             new_A = new_A % 360
 
                         rotation_speed = self.lf_outer_wall_print_speed * 60  # Convert to deg/min from deg/s
+                        # TODO If the movement is very small, and the angle is large, ignore it (just don't move the laser but keep it enabled)
 
                         linebuffer.append(f'G0 A{new_A} F{rotation_speed}')
                         self.added_commands += 1
 
                         # linebuffer.append(line) # Add original line w/ comment back in
+
+                    # Laser does not need to be turned off constantly
+                    # If movement is less than
 
                     if extrude_state_changed_flag:
                         # Toggle laser depending on deposition state
@@ -307,7 +315,8 @@ class PostProcessor:
                 toolpath = []
 
 
-        self.toolpaths.pop(0) # remove the first, empty value
+        if visualize:
+            self.toolpaths.pop(0) # remove the first, empty value
         return modified_gcode_list
 
 
